@@ -7,6 +7,8 @@ class DataProcessor():
     def __init__(self,maximum_noise_level: float,max_power_spike_variance: int) -> None:
         self.maximum_noise_level = maximum_noise_level
         self.max_power_spike_variance = max_power_spike_variance
+
+
     def process_data(self,df: pd.DataFrame):
         diffs = pd.DataFrame()
         diffs['Power_Diff'] = df['Power'].diff()
@@ -25,7 +27,6 @@ class DataProcessor():
         })
         power_spikes_dict = dict()
         outlier_spikes = set()
-        print(diffs["Power_Diff"])
         for i in diffs.index:
             spike_power = diffs["Power_Diff"][i]
             # 
@@ -47,8 +48,10 @@ class DataProcessor():
                     for j in power_spikes_dict[abs(spike_power)]:
                         df_connections.loc[len(df_connections)] = [abs(spike_power),j,minute,True]
                         outlier_spikes.discard((abs(spike_power)))
-            
-        print(df_connections)
+                        
+            # TODO Take care of the outliers
+
+        return df_connections
 
             
 
