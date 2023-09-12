@@ -79,7 +79,8 @@ if __name__ == '__main__':
         if event == "-STOP-":
             window['-NOLOOP-'].update(True)
             df = pd.DataFrame(power_data)
-            df.to_csv('data/example_01.csv')
+            df['Minute'] = df.index
+            df.to_csv('data-generator/data/example_02.csv',header=['Minute','Power'],index=False)
         
         if event == "-EXIT-":
             break
