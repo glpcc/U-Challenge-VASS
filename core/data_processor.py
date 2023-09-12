@@ -10,8 +10,15 @@ class DataProcessor():
         diffs = pd.DataFrame()
         diffs['Power_Diff'] = df['Power'].diff()
         diffs['Minute'] = df['Minute']
-        # leave only elements above 5 in the diffs array
+        # leave only elements above 5 in the diffs dataframe
         diffs = diffs[abs(diffs['Power_Diff']) > self.maximum_noise_level]
-        plt.scatter(diffs['Minute'],diffs['Power_Diff'])
-        plt.plot(df['Minute'],df['Power'])
-        plt.show()
+
+        # Connect Posible On/Off moments for Same power devices
+        df_connections = pd.DataFrame
+
+        
+
+        # Plot the diff dataframe if needed
+        # plt.scatter(diffs['Minute'],diffs['Power_Diff'])
+        # plt.plot(df['Minute'],df['Power'])
+        # plt.show()
