@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from core.device import Device
 import math
 
-class knowledge_base():
+class KnowledgeBase():
     def __init__(self) -> None:
         # Dictionary with the devices connected to the power in the form of 
         # Power: [Device1,Device2,...]
@@ -53,6 +53,8 @@ class knowledge_base():
                     weight += a*math.exp(distance*b)
                     distance = self.distance_to_kpoints(device.analitics["Operating_time"],k,event["Off"]-event["On"])
                     weight += a*math.exp(distance*b)
+                    if weight > 3:
+                        print("ERROR")
                     weight /= 3
                     # Remove 0.3 to the weight if the event was not the same power in the positive spike and the negative spike.
                     weight = max(weight-0.3,0) if event['Complete?'] else weight
@@ -70,3 +72,15 @@ class knowledge_base():
     
     def read_data(self):
         ...
+
+    # TODO TEMP
+    def plot_device_analytics(self):
+        for power in self.devices:
+            for device in self.devices[power]:
+                # Calculate the weighted average
+                val = device.analitics.index
+                wt = device.analitics["On_time"]
+                print((val * wt).sum() / wt.sum())
+                print(device.num_points)
+                device.analitics.plot(title=str(power)+ "W",style='.')
+                plt.show()

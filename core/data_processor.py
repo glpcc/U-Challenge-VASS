@@ -17,7 +17,6 @@ class DataProcessor():
         diffs = diffs[abs(diffs['Power_Diff']) > self.maximum_noise_level]
         # Round to the nearest multiple of the supplied variance to be able to use the spikes as dict keys
         diffs["Power_Diff"] = (diffs["Power_Diff"]/self.max_power_spike_variance).round() * self.max_power_spike_variance
-
         # Connect Posible On/Off moments for Same power devices
         df_connections = pd.DataFrame(columns={
             "Power":int,
