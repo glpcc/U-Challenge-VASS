@@ -11,16 +11,17 @@ data_load = DataLoader()
 data_processor = DataProcessor(maximum_noise_level=2,max_power_spike_variance=3)
 kb = KnowledgeBase()
 
-days = 10
+days = 100
 
 for d in range(days):
     # Get the power data from the required source
-    data = data_load.get_data(f'data-generator/data/example_day{d}.csv','csv')
+    data = data_load.get_data(f'','generate')
 
     # Proccess the data
     posibles_device_intervals = data_processor.process_data(data)
-    print(posibles_device_intervals)
+    #print(posibles_device_intervals)
     # Create a test device
     kb.save_events(posibles_device_intervals)
+    print(d)
 
 kb.plot_device_analytics()
