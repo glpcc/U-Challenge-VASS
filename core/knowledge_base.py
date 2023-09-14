@@ -41,7 +41,7 @@ class KnowledgeBase():
                 # TODO Add the posibility of adding more devices to the same power category
                 for device in self.devices[event["Power"]]:
                     weight = 0
-                    # The 0.15 number is an arbitrary number to be changed depending on the tendency to strong time patterns
+                    # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
                     k = device.weight_sum*0.1
                     # a,b selected from function desing to be near 1 around 20-40 minutes of distance
                     a = 1
