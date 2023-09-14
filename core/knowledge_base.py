@@ -9,6 +9,7 @@ class KnowledgeBase():
         # Dictionary with the devices connected to the power in the form of 
         # Power: [Device1,Device2,...]
         self.devices: dict[int,list[Device]] = dict()
+        self.num_days = 0
 
     def distance_to_kpoints(self,point_distribution,k,starting_point):
         total_points = point_distribution[starting_point]
@@ -34,6 +35,7 @@ class KnowledgeBase():
         # On: int
         # Off: int
         # Complete?: bool
+        self.num_days += 1
         for indx,event in events.iterrows():
             # Check if power in devices
             if event["Power"] in self.devices:
@@ -57,7 +59,7 @@ class KnowledgeBase():
                         print("ERROR")
                     weight /= 3
                     # Remove 0.3 to the weight if the event was not the same power in the positive spike and the negative spike.
-                    weight = max(weight-0.3,0) if event['Complete?'] else weight
+                    weight = max(weight-0.5,0) if event['Complete?'] else weight
                     # Add point to the device analitics
                     device.add_point(weight,event)
 
@@ -84,3 +86,11 @@ class KnowledgeBase():
                 print(device.num_points)
                 device.analitics.plot(title=str(power)+ "W",style='.')
                 plt.show()
+
+    def trim_devices(self,percentage_of_points):
+        minimum_points = percentage_of_points*self.num_days
+        print(minimum_points)
+        for power in self.devices:
+            for i in range(len(self.devices[power])):
+                if self.devices[power][i].num_points < minimum_points:
+                    del self.devices[power][i]

@@ -24,31 +24,58 @@ class DataProcessor():
             "Off":int,
             "Complete?":bool
         })
-        power_spikes_dict = dict()
-        outlier_spikes = set()
+        positive_spikes_dict = dict()
+        negative_spikes_dict = dict()
         for i in diffs.index:
             spike_power = diffs["Power_Diff"][i]
             # 
             minute = diffs["Minute"][i]
             if spike_power > 0:
                 # Add to the power spike dict the minute that corresponding amount of power came on
-                if spike_power in power_spikes_dict:
-                    power_spikes_dict[spike_power].append(minute)
+                if spike_power in positive_spikes_dict:
+                    positive_spikes_dict[spike_power].append(minute)
                 else:
-                    power_spikes_dict[spike_power] = [minute]
+                    positive_spikes_dict[spike_power] = [minute]
 
-                # Save to the outlier spike set
-                outlier_spikes.add((spike_power,minute))
             else:
-
+                if abs(spike_power) in negative_spikes_dict:
+                    negative_spikes_dict[abs(spike_power)].append(minute)
+                else:
+                    negative_spikes_dict[abs(spike_power)] = [minute]
                 # See if the negative spike has a positive sibling alredy seen
-                if abs(spike_power) in power_spikes_dict:
+                if abs(spike_power) in positive_spikes_dict:
                     # Iterate through all the posible ON times for the device and add them to the result df
-                    for j in power_spikes_dict[abs(spike_power)]:
+                    for j in positive_spikes_dict[abs(spike_power)]:
                         df_connections.loc[len(df_connections)] = [abs(spike_power),j,minute,True]
-                        outlier_spikes.discard((abs(spike_power)))
-                        
-            # TODO Take care of the outliers
+                    
+                    pending_positive_spikes = len(positive_spikes_dict[abs(spike_power)])
+                    pending_negative_spikes = len(negative_spikes_dict[abs(spike_power)])
+                    if pending_negative_spikes == pending_positive_spikes:
+                        # Clear both out to asume they were the same devices 
+                        # as the posibility of two devices adding up the same power 
+                        # and turning up at the same time is consider negligible on the long term
+                        positive_spikes_dict[abs(spike_power)] = []
+                        negative_spikes_dict[abs(spike_power)] = []
+                    elif pending_negative_spikes < pending_positive_spikes:
+                        # Clear the negative spikes
+                        negative_spikes_dict[abs(spike_power)] = []
+                    else:
+                        positive_spikes_dict[abs(spike_power)] = []
+                    
+            # Take care of the outliers
+            # exhaustively match the left over positive an negative spikes with each other
+            for p in positive_spikes_dict:
+                if len(positive_spikes_dict[p]) == 0:
+                    continue
+                for pn in negative_spikes_dict:
+                    if len(negative_spikes_dict[pn]) == 0 or p == pn:
+                        continue
+                    for min_p in positive_spikes_dict[p]:
+                        for min_n in negative_spikes_dict[pn]:
+                            if (min_n > min_p):
+                                df_connections.loc[len(df_connections)] = [p,min_p,min_n,False]
+                                df_connections.loc[len(df_connections)] = [pn,min_p,min_n,False]
+
 
         return df_connections
 

@@ -7,7 +7,7 @@ class Device():
         self.name = name if name is not None else "Unknown"
         # Create table with the analytics for each minute of the day
         # Each row of the dataframe will have the sum of the points at that minute for that feature (starting time, etc...)
-        self.analitics = pd.DataFrame(0,index=np.arange(60*24),columns=["On_time","Off_time","Operating_time"])
+        self.analitics = pd.DataFrame(np.zeros((1440,3)),columns=["On_time","Off_time","Operating_time"])
         self.num_points = 0
         self.weight_sum = 0
 

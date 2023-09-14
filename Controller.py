@@ -24,4 +24,5 @@ for d in range(days):
     kb.save_events(posibles_device_intervals)
     print(d)
 
+kb.trim_devices(0.5)
 kb.plot_device_analytics()
