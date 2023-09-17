@@ -67,10 +67,10 @@ class KnowledgeBase():
             return 1
         weight = 0
         # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
-        k = device.weight_sum*0.1
+        k = device.weight_sum*0.2
         # a,b selected from function desing to be near 1 around 20-40 minutes of distance
         a = 1
-        b = -0.003
+        b = -0.008
         # Get the distance from the 3 features
         distance = self.distance_to_kpoints(device.analitics["On_time"],k,event["On"])
         weight += a*math.exp(distance*b)
@@ -96,14 +96,12 @@ class KnowledgeBase():
                 # Calculate the weighted average
                 val = device.analitics.index
                 wt = device.analitics["On_time"]
-                print((val * wt).sum() / wt.sum())
-                print(device.num_points)
+                print(power, (val * wt).sum() / wt.sum())
                 device.analitics.plot(title=str(power)+ "W",style='.')
                 plt.show()
 
     def trim_devices(self,percentage_of_points):
         minimum_points = percentage_of_points*self.num_days
-        print(minimum_points)
         for power in self.devices:
             for i in range(len(self.devices[power])):
                 if self.devices[power][i].num_points < minimum_points:

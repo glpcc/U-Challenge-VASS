@@ -21,7 +21,9 @@ for d in range(days):
     posibles_device_intervals,min_num_devices = data_processor.process_data(data)
 
     
-    #print(min_num_devices)
+    # for p,group in posibles_device_intervals.groupby("Power"):
+    #     print(p)
+    #     print(group)
 
     kb.save_events(posibles_device_intervals,min_num_devices)
     print(d)
