@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Device():
-    def __init__(self, name: str | None = None) -> None:
+    def __init__(self,power:int, name: str | None = None) -> None:
         self.name = name if name is not None else "Unknown"
         # Create table with the analytics for each minute of the day
         # Each row of the dataframe will have the sum of the points at that minute for that feature (starting time, etc...)

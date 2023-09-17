@@ -8,7 +8,7 @@ from core.knowledge_base import KnowledgeBase
 
 # Generate the classes instances
 data_load = DataLoader()
-data_processor = DataProcessor(maximum_noise_level=2,max_power_spike_variance=3)
+data_processor = DataProcessor(maximum_noise_level=2,max_power_spike_variance=5)
 kb = KnowledgeBase()
 
 days = 100
@@ -18,10 +18,12 @@ for d in range(days):
     data = data_load.get_data(f'','generate')
 
     # Proccess the data
-    posibles_device_intervals = data_processor.process_data(data)
-    #print(posibles_device_intervals)
-    # Create a test device
-    kb.save_events(posibles_device_intervals)
+    posibles_device_intervals,min_num_devices = data_processor.process_data(data)
+
+    
+    #print(min_num_devices)
+
+    kb.save_events(posibles_device_intervals,min_num_devices)
     print(d)
 
 kb.trim_devices(0.5)

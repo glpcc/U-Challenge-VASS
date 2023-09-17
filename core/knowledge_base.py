@@ -29,46 +29,60 @@ class KnowledgeBase():
                 distance += 1
         return distance - 1
     
-    def save_events(self,events : pd.DataFrame):
+    def save_events(self,events : pd.DataFrame, min_num_devices: dict[int,int]):
         # Events is a dataframe with the following columns:
         # Power: int
         # On: int
         # Off: int
         # Complete?: bool
         self.num_days += 1
-        for indx,event in events.iterrows():
-            # Check if power in devices
-            if event["Power"] in self.devices:
-                # Check if the device is already in the list
-                # TODO Add the posibility of adding more devices to the same power category
-                for device in self.devices[event["Power"]]:
-                    weight = 0
-                    # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
-                    k = device.weight_sum*0.1
-                    # a,b selected from function desing to be near 1 around 20-40 minutes of distance
-                    a = 1
-                    b = -0.003
-                    # Get the distance from the 3 features
-                    distance = self.distance_to_kpoints(device.analitics["On_time"],k,event["On"])
-                    weight += a*math.exp(distance*b)
-                    distance = self.distance_to_kpoints(device.analitics["Off_time"],k,event["Off"])
-                    weight += a*math.exp(distance*b)
-                    distance = self.distance_to_kpoints(device.analitics["Operating_time"],k,event["Off"]-event["On"])
-                    weight += a*math.exp(distance*b)
-                    if weight > 3:
-                        print("ERROR")
-                    weight /= 3
-                    # Remove 0.3 to the weight if the event was not the same power in the positive spike and the negative spike.
-                    weight = max(weight-0.5,0) if event['Complete?'] else weight
-                    # Add point to the device analitics
-                    device.add_point(weight,event)
-
-            else:
+        for power,group in events.groupby("Power"):
+            # Check if there is any device with that power
+            if power not in self.devices:
                 # Create new device
-                new_device = Device()
-                new_device.add_point(1,event)
-                self.devices[event["Power"]] = [new_device]
+                new_device = Device(power)
+                self.devices[power] = [new_device]
+
+            # Make a list of the new devices that need to be created
+            num_new_devices = max(min_num_devices.get(power,0) - len(self.devices[power]),0)
+            new_devices = [Device(power) for i in range(num_new_devices)]
+            j = 0
+            for i,event in group.iterrows():
+                max_w = 0
+                for device in self.devices[power]:
+                    w = self.calculate_event_weight(device,event)
+                    device.add_point(w,event)
+                    max_w = max(max_w,w)
+
+                if num_new_devices > 0:
+                    # Add the opposite of the max_w to start accepting the points no other accept
+                    # The j % num_new_devices is to separate at start, 
+                    # the points for the new devices to separate their tendecy to accept different patterns
+                    new_devices[j%num_new_devices].add_point(1-max_w,event)
+                    j += 1
+            self.devices[power] += new_devices
     
+    def calculate_event_weight(self,device: Device,event):
+        if device.num_points == 0:
+            return 1
+        weight = 0
+        # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
+        k = device.weight_sum*0.1
+        # a,b selected from function desing to be near 1 around 20-40 minutes of distance
+        a = 1
+        b = -0.003
+        # Get the distance from the 3 features
+        distance = self.distance_to_kpoints(device.analitics["On_time"],k,event["On"])
+        weight += a*math.exp(distance*b)
+        distance = self.distance_to_kpoints(device.analitics["Off_time"],k,event["Off"])
+        weight += a*math.exp(distance*b)
+        distance = self.distance_to_kpoints(device.analitics["Operating_time"],k,event["Off"]-event["On"])
+        weight += a*math.exp(distance*b)
+        weight /= 3
+        # Remove 0.3 to the weight if the event was not the same power in the positive spike and the negative spike.
+        weight = max(weight-0.3,0) if event['Complete?'] else weight
+        return weight
+
     def save_data(self):
         ...
     

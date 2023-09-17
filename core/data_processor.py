@@ -26,14 +26,23 @@ class DataProcessor():
         })
         positive_spikes_dict = dict()
         negative_spikes_dict = dict()
+        min_num_devices = dict()
         for i in diffs.index:
             spike_power = diffs["Power_Diff"][i]
             # 
             minute = diffs["Minute"][i]
+            
             if spike_power > 0:
+                # Add one device to the min_num_devices dict if not already there
+                if spike_power not in min_num_devices:
+                    min_num_devices[spike_power] = 1
+
                 # Add to the power spike dict the minute that corresponding amount of power came on
                 if spike_power in positive_spikes_dict:
+                    # Check if there must be more devices with that power 
                     positive_spikes_dict[spike_power].append(minute)
+                    if min_num_devices[spike_power] < len(positive_spikes_dict[spike_power]):
+                        min_num_devices[spike_power] += 1
                 else:
                     positive_spikes_dict[spike_power] = [minute]
 
@@ -42,7 +51,8 @@ class DataProcessor():
                     negative_spikes_dict[abs(spike_power)].append(minute)
                 else:
                     negative_spikes_dict[abs(spike_power)] = [minute]
-                # See if the negative spike has a positive sibling alredy seen
+
+                # See if the negative spike has a positive sibling already seen
                 if abs(spike_power) in positive_spikes_dict:
                     # Iterate through all the posible ON times for the device and add them to the result df
                     for j in positive_spikes_dict[abs(spike_power)]:
@@ -56,28 +66,29 @@ class DataProcessor():
                         # and turning up at the same time is consider negligible on the long term
                         positive_spikes_dict[abs(spike_power)] = []
                         negative_spikes_dict[abs(spike_power)] = []
-                    elif pending_negative_spikes < pending_positive_spikes:
-                        # Clear the negative spikes
-                        negative_spikes_dict[abs(spike_power)] = []
-                    else:
-                        positive_spikes_dict[abs(spike_power)] = []
                     
-            # Take care of the outliers
-            # exhaustively match the left over positive an negative spikes with each other
-            for p in positive_spikes_dict:
-                if len(positive_spikes_dict[p]) == 0:
+
+                    
+        # Take care of the outliers
+        # exhaustively match the left over positive an negative spikes with each other
+        for p in positive_spikes_dict:
+            if len(positive_spikes_dict[p]) == 0:
+                continue
+            for pn in negative_spikes_dict:
+                if len(negative_spikes_dict[pn]) == 0 or p == pn:
                     continue
-                for pn in negative_spikes_dict:
-                    if len(negative_spikes_dict[pn]) == 0 or p == pn:
-                        continue
-                    for min_p in positive_spikes_dict[p]:
-                        for min_n in negative_spikes_dict[pn]:
-                            if (min_n > min_p):
-                                df_connections.loc[len(df_connections)] = [p,min_p,min_n,False]
-                                df_connections.loc[len(df_connections)] = [pn,min_p,min_n,False]
+                # If there are positive outliers with the same power dont consider it
+                if len(positive_spikes_dict.get(pn,[])) > 0:
+                    continue
+
+                for min_p in positive_spikes_dict[p]:
+                    for min_n in negative_spikes_dict[pn]:
+                        if (min_n > min_p):
+                            df_connections.loc[len(df_connections)] = [p,min_p,min_n,False]
+                            df_connections.loc[len(df_connections)] = [pn,min_p,min_n,False]
 
 
-        return df_connections
+        return df_connections, min_num_devices
 
             
 
