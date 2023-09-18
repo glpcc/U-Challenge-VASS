@@ -29,4 +29,5 @@ for d in range(days):
     print(d)
 
 kb.trim_devices(0.5)
+kb.name_devices_from_csv(pd.read_csv("data_generator/data/devices.csv"))
 kb.plot_device_analytics()

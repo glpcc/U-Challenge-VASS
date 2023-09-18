@@ -97,7 +97,7 @@ class KnowledgeBase():
                 val = device.analitics.index
                 wt = device.analitics["On_time"]
                 print(power, (val * wt).sum() / wt.sum())
-                device.analitics.plot(title=str(power)+ "W",style='.')
+                device.analitics.plot(title=device.name,style='.')
                 plt.show()
 
     def trim_devices(self,percentage_of_points):
@@ -106,3 +106,33 @@ class KnowledgeBase():
             for i in range(len(self.devices[power])):
                 if self.devices[power][i].num_points < minimum_points:
                     del self.devices[power][i]
+
+    def name_devices_from_csv(self,devices_names: pd.DataFrame):
+        # function to name the devices from a dataframe with the power usage and usual on and off time of the devices
+        # Mainly for testing purposes
+        for power,group in devices_names.groupby("Power"):
+            if power not in self.devices:
+                # TODO add the device to the class dict and add the mean as a point
+                continue
+            devices_means = pd.DataFrame(columns={
+                "On_time":int,
+                "Off_time":int,
+                "Operating_time":int
+            })
+            for device in self.devices[power]:
+                # Calculate the weighted average
+                val = device.analitics.index
+                wt = device.analitics
+                # Get the means 
+                devices_means.loc[len(devices_means)] = (wt.mul(val,axis=0)).sum() / wt.sum()
+            
+            for i,device in group.iterrows():
+                # Calculate the differences to the know devices
+                differnces = abs(device["Usual_On_time"] - devices_means["On_time"].values) + abs(device["Usual_Off_time"] - devices_means["Off_time"].values) + abs((device["Usual_Off_time"]-device["Usual_On_time"]) - devices_means["Operating_time"].values)
+                # Get the index of the minimum difference
+                index = differnces.argmin()
+                if index < len(self.devices[power]):
+                    self.devices[power][index].name = device["Device_Name"]
+            
+
+
