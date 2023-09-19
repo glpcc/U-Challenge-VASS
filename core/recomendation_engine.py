@@ -8,8 +8,47 @@ class RecomendationEngine():
     def __init__(self) -> None:
         pass
 
-    def recommend_cheaper_on_times(self,devices,electricity_price: pd.DataFrame):
-        ...
+    def recommend_cheaper_on_times(self,devices: list[Device],electricity_price: pd.DataFrame):
+        mean_usage_times = {device: self.calculate_weighted_mean(device,"Operating_time") for device in devices}
+        std_usage_times = {device: self.calculate_weighted_std(device,"Operating_time") for device in devices}
+        mean_on_times = {device: self.calculate_weighted_mean(device,"On_time") for device in devices}
+        std_on_times = {device: self.calculate_weighted_std(device,"On_time") for device in devices}
+
+        # Some parameters to determine the recomendations
+        std_considerated_not_regular_use = 4 # minutes of standard deviation to consider that a device is not used at the same time every day
+        min_std_usage_time_consider_regular = 220 # minutes of standard deviation to consider that a device is used the same amount of time every day
+        out_of_boundaries_usage_time = (0,1441) # tuple with the minimum and maximum time in minutes a recommendation should tell to use the device (to for example exclude the sleeping time)
+
+
+        for device in devices:
+            if std_on_times[device] < std_considerated_not_regular_use:
+                continue
+            if std_usage_times[device] > min_std_usage_time_consider_regular:
+                continue
+
+            power_usage = np.zeros(round(mean_usage_times[device]))
+            
+            power_usage.fill(device.power)
+            # Pass to mega Watts
+            power_usage = power_usage/1e6
+            # Pass the prices of price per minute
+            electricity_price_per_min = electricity_price['value']/60
+            limits = out_of_boundaries_usage_time
+            convolution = np.convolve(power_usage,electricity_price_per_min[limits[0]:limits[1]],mode='valid')
+
+            # Get the index of the minimum value of the convolution
+            min_index = convolution.argmin()
+            most_efficcient_minute = min_index
+            cost_reduction = convolution[round(mean_on_times[device])] - convolution[most_efficcient_minute]
+            print(convolution[most_efficcient_minute])
+            # Print the recomendation
+            print(f"Se podrian ahorrar {cost_reduction:.2f}€ si el dispositivo llamado {device.name} que consume {device.power}W se usara a las {round(most_efficcient_minute/60)}:{round(most_efficcient_minute%60)}h \
+                   \n en vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h"
+            )
+            
+
+
+
 
     def recommend_sorter_usage_time(self,devices: list[Device]):
         # Sort devices by the time they are used

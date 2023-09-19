@@ -47,4 +47,12 @@ class DataLoader():
         #parse the json response
         json_response = json.loads(r.text)
         df = pd.read_json(json.dumps(json_response['included'][0]['attributes']['values']))
-        return df
+
+        # Pass the dataframe to minutes 
+        df_mins = pd.DataFrame(np.zeros((24*60+1,1)),columns=['value'])
+
+        temp = df.set_index(df.index * 60)
+        df_mins['value'] = temp['value']
+        df_mins.interpolate(method='linear',inplace=True)
+        
+        return df_mins

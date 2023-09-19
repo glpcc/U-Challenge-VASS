@@ -11,7 +11,7 @@ data_load = DataLoader()
 data_processor = DataProcessor(maximum_noise_level=2,max_power_spike_variance=5)
 kb = KnowledgeBase()
 
-days = 10
+days = 50
 
 for d in range(days):
     # Get the power data from the required source
@@ -34,5 +34,6 @@ kb.name_devices_from_csv(pd.read_csv("data_generator/data/devices.csv"))
 re = RecomendationEngine()
 list_devices = list(kb.devices.values())
 list_devices = [item for sublist in list_devices for item in sublist]
-re.recommend_sorter_usage_time(list_devices)
+# re.recommend_sorter_usage_time(list_devices)
+re.recommend_cheaper_on_times(list_devices,data_load.get_electricity_price())
 #kb.plot_device_analytics()
