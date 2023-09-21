@@ -40,12 +40,12 @@ class KnowledgeBase():
             # Check if there is any device with that power
             if power not in self.devices:
                 # Create new device
-                new_device = Device(power)
+                new_device = Device(power,name=f"Unknown device {power}W 0")
                 self.devices[power] = [new_device]
 
             # Make a list of the new devices that need to be created
             num_new_devices = max(min_num_devices.get(power,0) - len(self.devices[power]),0)
-            new_devices = [Device(power) for i in range(num_new_devices)]
+            new_devices = [Device(power,name=f"Unknown device {power}W {i +1 + len(self.devices[power])}") for i in range(num_new_devices)]
             j = 0
             for i,event in group.iterrows():
                 max_w = 0
@@ -67,16 +67,16 @@ class KnowledgeBase():
             return 1
         weight = 0
         # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
-        k = device.weight_sum*0.2
+        k = device.weight_sum*0.35
         # a,b selected from function desing to be near 1 around 20-40 minutes of distance
         a = 1
         b = -0.008
         # Get the distance from the 3 features
-        distance = self.distance_to_kpoints(device.analitics["On_time"],k,event["On"])
+        distance = self.distance_to_kpoints(device.analytics["On_time"],k,event["On"])
         weight += a*math.exp(distance*b)
-        distance = self.distance_to_kpoints(device.analitics["Off_time"],k,event["Off"])
+        distance = self.distance_to_kpoints(device.analytics["Off_time"],k,event["Off"])
         weight += a*math.exp(distance*b)
-        distance = self.distance_to_kpoints(device.analitics["Operating_time"],k,event["Off"]-event["On"])
+        distance = self.distance_to_kpoints(device.analytics["Operating_time"],k,event["Off"]-event["On"])
         weight += a*math.exp(distance*b)
         weight /= 3
         # Remove 0.3 to the weight if the event was not the same power in the positive spike and the negative spike.
@@ -93,11 +93,8 @@ class KnowledgeBase():
     def plot_device_analytics(self):
         for power in self.devices:
             for device in self.devices[power]:
-                # Calculate the weighted average
-                val = device.analitics.index
-                wt = device.analitics["On_time"]
-                print(power, (val * wt).sum() / wt.sum())
-                device.analitics.plot(title=device.name,style='.')
+                print(device.power,device.num_points)
+                device.analytics.plot(title=device.name,style='.')
                 plt.show()
 
     def trim_devices(self,percentage_of_points):
@@ -121,8 +118,8 @@ class KnowledgeBase():
             })
             for device in self.devices[power]:
                 # Calculate the weighted average
-                val = device.analitics.index
-                wt = device.analitics
+                val = device.analytics.index
+                wt = device.analytics
                 # Get the means 
                 devices_means.loc[len(devices_means)] = (wt.mul(val,axis=0)).sum() / wt.sum()
             
@@ -135,4 +132,14 @@ class KnowledgeBase():
                     self.devices[power][index].name = device["Device_Name"]
             
 
+    def get_list_devices(self):
+        list_devices = list(self.devices.values())
+        # Unpack the list of lists
+        return [item for sublist in list_devices for item in sublist]
 
+    def set_devices_by_list(self,list_devices: list[Device]):
+        for i in list_devices:
+            if i.power not in self.devices:
+                self.devices[i.power] = [i]
+            else:
+                self.devices[i.power].append(i)

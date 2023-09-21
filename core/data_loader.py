@@ -4,6 +4,7 @@ from data_generator.data_generator2 import generate_data
 import requests
 import json
 import datetime
+from core.device import Device
 
 class DataLoader():
 
@@ -56,3 +57,40 @@ class DataLoader():
         df_mins.interpolate(method='linear',inplace=True)
         
         return df_mins
+
+    def save_devices_data(self,devices: list[Device],path_to_save:str = "data/"):
+        # Save the devices data to a csv file
+        analytics_df = pd.DataFrame(columns=['Device_ID','On_time','Off_time','Operating_time','Minute'])
+        device_df = pd.DataFrame(columns=['Name','Power','Weight_Sum','Num_Points','UID'])
+        i = 0
+        for device in devices:
+            # Add the device to the dataframe
+            device_df.loc[len(device_df)] = [device.name,device.power,device.weight_sum,device.num_points,i]
+            temp_df = device.analytics.copy()
+            temp_df['Device_ID'] = i
+            temp_df['Minute'] = temp_df.index
+            # Add the analytics to the dataframe
+            analytics_df = pd.concat([analytics_df,temp_df[ (temp_df["On_time"] != 0) | (temp_df["Off_time"] != 0) | (temp_df["Operating_time"] != 0)]])
+            i += 1
+        # Save the dataframes to csv
+        device_df.to_csv(path_to_save+"devices.csv",index=False)
+        analytics_df.to_csv(path_to_save + "analytics.csv",index=False)
+    
+
+    def load_devices_data(self,path_to_load:str = "data/"):
+        # Load the devices data from a csv file
+        device_df = pd.read_csv(path_to_load+"devices.csv")
+        analytics_df = pd.read_csv(path_to_load + "analytics.csv")
+        devices = []
+        for id,analytics in analytics_df.groupby('Device_ID'):
+            device_row = device_df.loc[id]
+            # Create a new device with the old data
+            new_device = Device(device_row['Power'],device_row['Name'])
+            new_device.num_points = device_row['Num_Points']
+            new_device.weight_sum = device_row['Weight_Sum']
+            # Add the analytics
+            new_device.analytics = pd.DataFrame(np.zeros((1440,3)),columns=["On_time","Off_time","Operating_time"])
+            new_device.analytics = new_device.analytics.add(analytics.set_index('Minute').drop(columns=['Device_ID']),fill_value=0)
+            # Add the device to the list
+            devices.append(new_device)
+        return devices

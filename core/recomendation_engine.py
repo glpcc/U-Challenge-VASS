@@ -62,13 +62,15 @@ class RecomendationEngine():
         return devices
     
     def calculate_weighted_std(self,device: Device,field)-> float:
-        val = device.analitics.index
-        wt = device.analitics[field]
+        val = device.analytics.index
+        wt = device.analytics[field]
         mean = np.average(val, weights=wt)
         variance = np.average((val - mean)**2, weights=wt)
         return np.sqrt(variance)
     
     def calculate_weighted_mean(self,device: Device,field)-> float:
-        val = device.analitics.index
-        wt = device.analitics[field]
+        val = device.analytics.index
+        wt = device.analytics[field]
         return np.average(val, weights=wt)
+
+    
