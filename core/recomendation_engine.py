@@ -42,7 +42,7 @@ class RecomendationEngine():
             cost_reduction = convolution[round(mean_on_times[device])] - convolution[most_efficcient_minute]
             # Print the recomendation
             print(f"Se podrian ahorrar {cost_reduction:.2f}€ si el dispositivo llamado {device.name} que consume {device.power}W se usara a las {round(most_efficcient_minute/60)}:{round(most_efficcient_minute%60)}h \
-                   \n en vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h"
+                   \n en vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h\n"
             )
             
 
