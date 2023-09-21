@@ -40,7 +40,6 @@ class RecomendationEngine():
             min_index = convolution.argmin()
             most_efficcient_minute = min_index
             cost_reduction = convolution[round(mean_on_times[device])] - convolution[most_efficcient_minute]
-            print(convolution[most_efficcient_minute])
             # Print the recomendation
             print(f"Se podrian ahorrar {cost_reduction:.2f}€ si el dispositivo llamado {device.name} que consume {device.power}W se usara a las {round(most_efficcient_minute/60)}:{round(most_efficcient_minute%60)}h \
                    \n en vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h"
@@ -58,7 +57,7 @@ class RecomendationEngine():
         max_num_devices = min(5,len(mean_usage_times))
         for device,mean_usage_time in mean_usage_times[:max_num_devices]:
             print(f"El dispositivo llamado {device.name} consume {device.power}W y se usa en promedio {round(mean_usage_time/60,2)} horas al día")
-            print(f"este dispositivo es uno de los que más consume y se usa, se recomienda reducir su uso si es posible")
+            print(f"este dispositivo es uno de los que más consume y se usa, se recomienda reducir su uso si es posible\n")
         return devices
     
     def calculate_weighted_std(self,device: Device,field)-> float:
