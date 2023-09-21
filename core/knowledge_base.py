@@ -83,12 +83,6 @@ class KnowledgeBase():
         weight = max(weight-0.3,0) if event['Complete?'] else weight
         return weight
 
-    def save_data(self):
-        ...
-    
-    def read_data(self):
-        ...
-
     # TODO TEMP
     def plot_device_analytics(self):
         for power in self.devices:
