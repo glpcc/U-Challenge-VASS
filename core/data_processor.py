@@ -27,10 +27,9 @@ class DataProcessor():
         positive_spikes_dict = dict()
         negative_spikes_dict = dict()
         min_num_devices = dict()
-        for i in diffs.index:
-            spike_power = diffs["Power_Diff"][i]
-            # 
-            minute = diffs["Minute"][i]
+        for i,row in diffs.iterrows():
+            spike_power = row["Power_Diff"]
+            minute = row["Minute"]
             
             if spike_power > 0:
                 # Add one device to the min_num_devices dict if not already there
