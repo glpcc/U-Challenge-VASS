@@ -70,7 +70,7 @@ class KnowledgeBase():
         k = device.weight_sum*0.35
         # a,b selected from function desing to be near 1 around 20-40 minutes of distance
         a = 1
-        b = -0.008
+        b = -0.005
         # Get the distance from the 3 features
         distance = self.distance_to_kpoints(device.analytics["On_time"],k,event["On"])
         weight += a*math.exp(distance*b)
@@ -83,13 +83,17 @@ class KnowledgeBase():
         weight = max(weight-0.3,0) if event['Complete?'] else weight
         return weight
 
-    # TODO TEMP
-    def plot_device_analytics(self):
+
+    def plot_device_analytics(self,power_to_plot: None | list[int] = None):
         for power in self.devices:
+            if power_to_plot is not None and power not in power_to_plot:
+                continue
+
             for device in self.devices[power]:
                 print(device.power,device.num_points)
-                device.analytics.plot(title=device.name,style='.')
+                device.analytics.plot(title=f'{device.name} {device.power}W',style='.')
                 plt.show()
+
 
     def trim_devices(self,percentage_of_points):
         minimum_points = percentage_of_points*self.num_days
