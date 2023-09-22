@@ -60,7 +60,7 @@ class KnowledgeBase():
 
                 for j,device in enumerate(self.devices[power]):
                     w = weights[j]
-                    w -= 0.4 if max_w > w else 0
+                    w -= 0.3 if max_w > w else 0
                     w = max(w,0)
                     device.add_point(w,event)
 
@@ -77,10 +77,10 @@ class KnowledgeBase():
             return 1
         weight = 0
         # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
-        k = device.weight_sum*0.4
+        k = device.weight_sum*0.35
         # a,b selected from function desing to be near 1 around 20-40 minutes of distance
         a = 1
-        b = -0.005
+        b = -0.008
         # Get the distance from the 3 features
         distance = self.distance_to_kpoints(device.analytics["On_time"],k,event["On"])
         weight += a*math.exp(distance*b)
