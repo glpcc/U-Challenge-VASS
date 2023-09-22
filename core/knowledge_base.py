@@ -12,6 +12,8 @@ class KnowledgeBase():
         self.num_days = 0
 
     def distance_to_kpoints(self,point_distribution,k,starting_point):
+        point_distribution = point_distribution.values
+        starting_point = int(starting_point)
         total_points = point_distribution[starting_point]
         distance = 1
         # While there are points to collect
@@ -49,10 +51,18 @@ class KnowledgeBase():
             j = 0
             for i,event in group.iterrows():
                 max_w = 0
+                weights = []
                 for device in self.devices[power]:
                     w = self.calculate_event_weight(device,event)
-                    device.add_point(w,event)
+                    weights.append(w)
                     max_w = max(max_w,w)
+                
+
+                for j,device in enumerate(self.devices[power]):
+                    w = weights[j]
+                    w -= 0.4 if max_w > w else 0
+                    w = max(w,0)
+                    device.add_point(w,event)
 
                 if num_new_devices > 0:
                     # Add the opposite of the max_w to start accepting the points no other accept
@@ -67,7 +77,7 @@ class KnowledgeBase():
             return 1
         weight = 0
         # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
-        k = device.weight_sum*0.35
+        k = device.weight_sum*0.4
         # a,b selected from function desing to be near 1 around 20-40 minutes of distance
         a = 1
         b = -0.005

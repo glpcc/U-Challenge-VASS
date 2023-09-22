@@ -21,7 +21,7 @@ def generate_data(**kwargs):
         # Ignore the device a certain percentage of the time
         if random.random() < p_forget:
             continue
-        
+
         on_time = day_rnd_times.iloc[i]["ON"]
         off_time = day_rnd_times.iloc[i]["OFF"]
         all_minutes.iloc[on_time:off_time] += day_rnd_times.iloc[i]["Power"]
