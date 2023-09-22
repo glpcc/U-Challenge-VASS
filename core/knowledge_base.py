@@ -100,7 +100,6 @@ class KnowledgeBase():
                 continue
 
             for device in self.devices[power]:
-                print(device.power,device.num_points)
                 device.analytics.plot(title=f'{device.name} {device.power}W',style='.')
                 plt.show()
 
