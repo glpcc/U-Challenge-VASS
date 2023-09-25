@@ -35,7 +35,7 @@ re = RecomendationEngine()
 list_devices = kb.get_list_devices()
 
 # re.recommend_sorter_usage_time(list_devices)
-re.recommend_cheaper_on_times(list_devices,data_load.get_electricity_price())
+re.recommend_cheaper_on_times(list_devices,data_load.get_electricity_price(),std_considerated_not_regular_use=4,min_std_usage_time_consider_regular=220,out_of_boundaries_usage_time=(0,1441))
 data_load.save_devices_data(list_devices,"data/")
 
 
