@@ -8,16 +8,11 @@ class RecomendationEngine():
     def __init__(self) -> None:
         pass
 
-    def recommend_cheaper_on_times(self,devices: list[Device],electricity_price: pd.DataFrame):
+    def recommend_cheaper_on_times(self,devices: list[Device],electricity_price: pd.DataFrame,std_considerated_not_regular_use: float = 4,min_std_usage_time_consider_regular: float = 220,out_of_boundaries_usage_time: tuple[int,int] = (0,1441)):
         mean_usage_times = {device: self.calculate_weighted_mean(device,"Operating_time") for device in devices}
         std_usage_times = {device: self.calculate_weighted_std(device,"Operating_time") for device in devices}
         mean_on_times = {device: self.calculate_weighted_mean(device,"On_time") for device in devices}
         std_on_times = {device: self.calculate_weighted_std(device,"On_time") for device in devices}
-
-        # Some parameters to determine the recomendations
-        std_considerated_not_regular_use = 4 # minutes of standard deviation to consider that a device is not used at the same time every day
-        min_std_usage_time_consider_regular = 220 # minutes of standard deviation to consider that a device is used the same amount of time every day
-        out_of_boundaries_usage_time = (0,1441) # tuple with the minimum and maximum time in minutes a recommendation should tell to use the device (to for example exclude the sleeping time)
 
 
         for device in devices:
