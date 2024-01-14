@@ -20,7 +20,7 @@ class Device():
         self.weight_sum += weight
     
     def get_as_dataframe(self):
-        return pd.DataFrame(self.analytics,columns=["On_time","Off_time","Operating_time"])
+        return pd.DataFrame(self.analytics.T,columns=["On_time","Off_time","Operating_time"])
     
     @property
     def on_time_analytics(self):

@@ -116,18 +116,21 @@ class KnowledgeBase():
             if power not in self.devices:
                 # TODO add the device to the class dict and add the mean as a point
                 continue
-            devices_means = pd.DataFrame(columns={
-                "On_time":int,
-                "Off_time":int,
-                "Operating_time":int
-            })
-            devices_means["On_time"] = [device.on_time_analytics.mean() for device in self.devices[power]]
-            devices_means["Off_time"] = [device.off_time_analytics.mean() for device in self.devices[power]]
-            devices_means["Operating_time"] = [device.operating_time_analytics.mean() for device in self.devices[power]]
+
+            time_index = np.arange(0,1440)
+            on_time_means = np.empty(len(self.devices[power]))
+            off_time_means = np.empty(len(self.devices[power]))
+            operating_time_means = np.empty(len(self.devices[power]))
+            # Calculate the weighted means of the devices
+            for i,device in enumerate(self.devices[power]):
+                on_time_means[i] = np.average(time_index,weights=device.on_time_analytics)
+                off_time_means[i] = np.average(time_index,weights=device.off_time_analytics)
+                operating_time_means[i] = np.average(time_index,weights=device.operating_time_analytics)
             
             for i,device in group.iterrows():
                 # Calculate the differences to the know devices
-                differnces = abs(device["Usual_On_time"] - devices_means["On_time"].values) + abs(device["Usual_Off_time"] - devices_means["Off_time"].values) + abs((device["Usual_Off_time"]-device["Usual_On_time"]) - devices_means["Operating_time"].values)
+                differnces = abs(device["Usual_On_time"] - on_time_means) + abs(device["Usual_Off_time"] - off_time_means) + abs((device["Usual_Off_time"]-device["Usual_On_time"]) - operating_time_means)
+                print(differnces,device["Device_Name"],on_time_means)
                 # Get the index of the minimum difference
                 index = differnces.argmin()
                 if index < len(self.devices[power]):
