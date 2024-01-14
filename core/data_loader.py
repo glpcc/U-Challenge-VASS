@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from data_generator.data_generator2 import generate_data
+from data_generator.data_generator import generate_data
 import requests
 import json
 import datetime

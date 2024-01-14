@@ -18,12 +18,11 @@ class DataProcessor():
         # Round to the nearest multiple of the supplied variance to be able to use the spikes as dict keys
         diffs["Power_Diff"] = (diffs["Power_Diff"]/self.max_power_spike_variance).round() * self.max_power_spike_variance
         # Connect Posible On/Off moments for Same power devices
-        df_connections = pd.DataFrame(columns={
-            "Power":int,
-            "On":int,
-            "Off":int,
-            "Complete?":bool
-        })
+        power_array = []
+        on_array = []
+        off_array = []
+        complete_array = []
+
         positive_spikes_dict = dict()
         negative_spikes_dict = dict()
         min_num_devices = dict()
@@ -55,7 +54,10 @@ class DataProcessor():
                 if abs(spike_power) in positive_spikes_dict:
                     # Iterate through all the posible ON times for the device and add them to the result df
                     for j in positive_spikes_dict[abs(spike_power)]:
-                        df_connections.loc[len(df_connections)] = [abs(spike_power),j,minute,True]
+                        power_array.append(abs(spike_power))
+                        on_array.append(j)
+                        off_array.append(minute)
+                        complete_array.append(True)
                     
                     pending_positive_spikes = len(positive_spikes_dict[abs(spike_power)])
                     pending_negative_spikes = len(negative_spikes_dict[abs(spike_power)])
@@ -83,10 +85,29 @@ class DataProcessor():
                 for min_p in positive_spikes_dict[p]:
                     for min_n in negative_spikes_dict[pn]:
                         if (min_n > min_p):
-                            df_connections.loc[len(df_connections)] = [p,min_p,min_n,False]
-                            df_connections.loc[len(df_connections)] = [pn,min_p,min_n,False]
+                            # Append a posible device with the positive spike power
+                            power_array.append(p)
+                            on_array.append(min_p)
+                            off_array.append(min_n)
+                            complete_array.append(False)
+                            # Append a posible device with the negative spike power
+                            power_array.append(pn)
+                            on_array.append(min_p)
+                            off_array.append(min_n)
+                            complete_array.append(False)
 
-
+        # Create the dataframe with the results
+        df_connections = pd.DataFrame()
+        df_connections['Power'] = power_array
+        df_connections['On'] = on_array
+        df_connections['Off'] = off_array
+        df_connections['Complete?'] = complete_array
+        # Pass the columns to the corresponding type
+        df_connections['Power'] = df_connections['Power'].astype(int)
+        df_connections['On'] = df_connections['On'].astype(int)
+        df_connections['Off'] = df_connections['Off'].astype(int)
+        df_connections['Complete?'] = df_connections['Complete?'].astype(bool)
+        
         return df_connections, min_num_devices
 
             
