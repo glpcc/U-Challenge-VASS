@@ -9,10 +9,11 @@ class RecomendationEngine():
         pass
 
     def recommend_cheaper_on_times(self,devices: list[Device],electricity_price: pd.DataFrame,std_considerated_not_regular_use: float = 4,min_std_usage_time_consider_regular: float = 220,out_of_boundaries_usage_time: tuple[int,int] = (0,1441)):
-        mean_usage_times = {device: self.calculate_weighted_mean(device,"Operating_time") for device in devices}
-        std_usage_times = {device: self.calculate_weighted_std(device,"Operating_time") for device in devices}
-        mean_on_times = {device: self.calculate_weighted_mean(device,"On_time") for device in devices}
-        std_on_times = {device: self.calculate_weighted_std(device,"On_time") for device in devices}
+        # 0 index is the on time, 1 index is the off time, 2 index is the operating time
+        mean_usage_times = {device: self.calculate_weighted_mean(device,2) for device in devices}
+        std_usage_times = {device: self.calculate_weighted_std(device,2) for device in devices}
+        mean_on_times = {device: self.calculate_weighted_mean(device,0) for device in devices}
+        std_on_times = {device: self.calculate_weighted_std(device,0) for device in devices}
 
 
         for device in devices:
@@ -33,11 +34,11 @@ class RecomendationEngine():
 
             # Get the index of the minimum value of the convolution
             min_index = convolution.argmin()
-            most_efficcient_minute = min_index
+            most_efficcient_minute = int(min_index)
             cost_reduction = convolution[round(mean_on_times[device])] - convolution[most_efficcient_minute]
             # Print the recomendation
             print(f"Se podrian ahorrar {cost_reduction:.2f}€ si el dispositivo llamado {device.name} que consume {device.power}W se usara a las {round(most_efficcient_minute/60)}:{round(most_efficcient_minute%60)}h \
-                   \n en vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h\n"
+                   \n en vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h\n" 
             )
             
 
@@ -45,8 +46,9 @@ class RecomendationEngine():
 
 
     def recommend_sorter_usage_time(self,devices: list[Device]):
+        # 0 index is the on time, 1 index is the off time, 2 index is the operating time
         # Sort devices by the time they are used
-        mean_usage_times = list(map(lambda x: (x,self.calculate_weighted_mean(x,"Operating_time")),devices))
+        mean_usage_times = list(map(lambda x: (x,self.calculate_weighted_mean(x,2)),devices))
         mean_usage_times.sort(key=lambda x: x[0].power*x[1],reverse=True)
         # Recommend to reduce the use time of the most used and consuming devices
         max_num_devices = min(5,len(mean_usage_times))
@@ -56,15 +58,15 @@ class RecomendationEngine():
         return devices
     
     def calculate_weighted_std(self,device: Device,field)-> float:
-        val = device.analytics.index
+        val = np.arange(len(device.analytics[field]))
         wt = device.analytics[field]
         mean = np.average(val, weights=wt)
         variance = np.average((val - mean)**2, weights=wt)
         return np.sqrt(variance)
     
     def calculate_weighted_mean(self,device: Device,field)-> float:
-        val = device.analytics.index
+        val = np.arange(len(device.analytics[field]))
         wt = device.analytics[field]
-        return np.average(val, weights=wt)
+        return np.average(val, weights=wt) # type: ignore
 
     

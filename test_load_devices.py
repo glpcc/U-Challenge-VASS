@@ -37,5 +37,10 @@ for d in range(days):
 
 kb.trim_devices(0.5)
 kb.name_devices_from_csv(pd.read_csv("data_generator/data/devices.csv"))
-kb.plot_device_analytics([50,120,200])
-plt.show()
+# kb.plot_device_analytics([50,120,200])
+
+list_devices = kb.get_list_devices()
+
+re = RecomendationEngine()
+re.recommend_sorter_usage_time(list_devices)
+re.recommend_cheaper_on_times(list_devices,data_load.get_electricity_price(),std_considerated_not_regular_use=4,min_std_usage_time_consider_regular=220,out_of_boundaries_usage_time=(0,1441))
