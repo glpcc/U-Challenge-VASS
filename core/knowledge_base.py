@@ -12,11 +12,13 @@ class KnowledgeBase():
         self.num_days = 0
 
     def save_events(self,events : pd.DataFrame, min_num_devices: dict[int,int]):
-        # Events is a dataframe with the following columns:
-        # Power: int
-        # On: int
-        # Off: int
-        # Complete?: bool
+        '''Function to save the events to the analytics of the devices in the knowledge base
+            Events is a dataframe with the following columns:
+            Power: int
+            On: int
+            Off: int
+            Complete?: bool
+        '''
         self.num_days += 1
         for power,group in events.groupby("Power"):
             power = int(power) # type: ignore
@@ -54,27 +56,34 @@ class KnowledgeBase():
             self.devices[power] += new_devices
     
     def calculate_event_weight(self,device: Device,on_time,off_time,complete):
+        '''Function to calculate the weight of a certain event for a device'''
         if device.num_points == 0:
             return 1
         weight = 0
         # The 0.1 number is an arbitrary number to be changed depending on the tendency to strong time patterns
         k = round(device.weight_sum*0.35)
-        # a,b selected from function desing to be near 1 around 20-40 minutes of distance
-        a = 1
-        b = -0.008
+        # b selected from function desing to be near 1 around 20-40 minutes of distance
+        b = 2e-5
         # Get the distance from the 3 features
         distance = self.distance_to_kpoints(device.on_time_analytics,k,on_time)
-        weight += a*math.exp(distance*b)
+        weight += self._distance_to_weight_function(b,distance)
         distance = self.distance_to_kpoints(device.off_time_analytics,k,off_time)
-        weight += a*math.exp(distance*b)
+        weight += self._distance_to_weight_function(b,distance)
         distance = self.distance_to_kpoints(device.operating_time_analytics,k,off_time-on_time)
-        weight += a*math.exp(distance*b)
+        weight += self._distance_to_weight_function(b,distance)
         weight /= 3
         # Remove 0.3 to the weight if the event was not the same power in the positive spike and the negative spike.
-        weight = max(weight-0.3,0) if complete else weight
+        weight = max(weight-0.4,0) if complete else weight
         return weight
 
+    @staticmethod
+    def _distance_to_weight_function(b,distance):
+        '''Customizable function to convert the distance to a weight'''
+        return math.exp(-b*(distance**2))
+
+
     def distance_to_kpoints(self, point_distribution: np.ndarray, k: int, starting_point: int):
+        '''Function to calculate the distance to the k points around the starting point'''
         total_points = point_distribution[starting_point]
         distance = 1
         # While in the circle arround the starting point there are less than k points
@@ -93,6 +102,7 @@ class KnowledgeBase():
         return distance - 1
         
     def plot_device_analytics(self,power_to_plot: None | list[int] = None):
+        '''Function to plot the analytics of the devices'''
         for power in self.devices:
             if power_to_plot is not None and power not in power_to_plot:
                 continue
@@ -103,6 +113,7 @@ class KnowledgeBase():
 
 
     def trim_devices(self,percentage_of_points):
+        '''Function to trim the devices that have less than the percentage of points of the total days'''
         minimum_points = percentage_of_points*self.num_days
         for power in self.devices:
             for i in range(len(self.devices[power])):
@@ -110,8 +121,7 @@ class KnowledgeBase():
                     del self.devices[power][i]
 
     def name_devices_from_csv(self,devices_names: pd.DataFrame):
-        # function to name the devices from a dataframe with the power usage and usual on and off time of the devices
-        # Mainly for testing purposes
+        '''Function to name the devices from a dataframe with the power usage and usual on and off time of the devices '''
         for power,group in devices_names.groupby("Power"):
             if power not in self.devices:
                 # TODO add the device to the class dict and add the mean as a point
@@ -130,19 +140,30 @@ class KnowledgeBase():
             for i,device in group.iterrows():
                 # Calculate the differences to the know devices
                 differnces = abs(device["Usual_On_time"] - on_time_means) + abs(device["Usual_Off_time"] - off_time_means) + abs((device["Usual_Off_time"]-device["Usual_On_time"]) - operating_time_means)
-                print(differnces,device["Device_Name"],on_time_means)
                 # Get the index of the minimum difference
                 index = differnces.argmin()
                 if index < len(self.devices[power]):
                     self.devices[power][index].name = device["Device_Name"]
             
-
+    def create_known_devices(self,devices_names: pd.DataFrame):
+        '''Function to create the devices from a dataframe with only the power and name of the devices '''
+        for i, (name,power) in devices_names.iterrows():
+            if power not in self.devices:
+                # Create new device
+                new_device = Device(power,name)
+                self.devices[power] = [new_device]
+            else:
+                new_device = Device(power,name)
+                self.devices[power].append(new_device)
+        
     def get_list_devices(self):
+        '''Function to get a list of all the devices in the knowledge base'''
         list_devices = list(self.devices.values())
         # Unpack the list of lists
         return [item for sublist in list_devices for item in sublist]
 
     def set_devices_by_list(self,list_devices: list[Device]):
+        '''Function to set the devices in the knowledge base from a list of devices'''
         for i in list_devices:
             if i.power not in self.devices:
                 self.devices[i.power] = [i]

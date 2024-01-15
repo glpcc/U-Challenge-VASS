@@ -15,7 +15,7 @@ days = 100
 
 for d in range(days):
     # Get the power data from the required source
-    data = data_load.get_data(f'','generate')
+    data = data_load.get_power_data()
 
     # Proccess the data
     posibles_device_intervals,min_num_devices = data_processor.process_data(data)

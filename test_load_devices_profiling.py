@@ -12,7 +12,7 @@ import pstats
 
 
 # Generate the classes instances
-data_load = DataLoader()
+data_load = DataLoader('generate')
 data_processor = DataProcessor(maximum_noise_level=2,max_power_spike_variance=5)
 kb = KnowledgeBase()
 
@@ -28,7 +28,7 @@ with cProfile.Profile() as pr:
     data_days = []
     for d in range(days):
         # Get the power data from the required source
-        data = data_load.get_data(f'','generate')
+        data = data_load.get_power_data()
 
         #Plot the data
         if d < 20:

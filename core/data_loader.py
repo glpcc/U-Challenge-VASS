@@ -8,25 +8,27 @@ from core.device import Device
 
 class DataLoader():
 
-    def __init__(self) -> None:
+    def __init__(self,data_method: None | str = None) -> None:
         # Example of multiple data sources with seamless integration to the user of the class
-        self.data_sources = {
-            "csv" : self.get_data_from_csv,
-            "api" : self.get_data_from_api,
-            "generate": self.get_data_from_generator
+        self.data_method = {
+            "csv" : self.get_power_data_from_csv,
+            "api" : self.get_power_data_from_api,
+            "generate": self.get_power_data_from_generator
         }
+        self.default_method = "generate" if data_method is None else data_method
 
-    def get_data(self,source,source_type)-> pd.DataFrame:
-        return self.data_sources[source_type](source)
 
-    def get_data_from_csv(self,source) -> pd.DataFrame:
+    def get_power_data(self,source = '')-> pd.DataFrame:
+        return self.data_method[self.default_method](source)
+
+    def get_power_data_from_csv(self,source) -> pd.DataFrame:
         df = pd.read_csv(source)
         return df
     
-    def get_data_from_api(self,**kwargs):
+    def get_power_data_from_api(self,**kwargs):
         ...
 
-    def get_data_from_generator(self,source):
+    def get_power_data_from_generator(self,source):
         # function that creates artificial data for testing purposes
         return generate_data()
 
@@ -89,7 +91,9 @@ class DataLoader():
             new_device.num_points = device_row['Num_Points']
             new_device.weight_sum = device_row['Weight_Sum']
             # Add the analytics
-            new_device.analytics = analytics[['On_time','Off_time','Operating_time']].to_numpy().T
+            temp  = pd.DataFrame(np.zeros((1440,3)),columns=["On_time","Off_time","Operating_time"])
+            temp = temp.add(analytics.set_index('Minute').drop(columns=['Device_ID']),fill_value=0)
+            new_device.analytics = temp.to_numpy().T
             # Add the device to the list
             devices.append(new_device)
         return devices
