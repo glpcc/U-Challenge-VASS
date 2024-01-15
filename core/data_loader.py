@@ -66,7 +66,7 @@ class DataLoader():
         for device in devices:
             # Add the device to the dataframe
             device_df.loc[len(device_df)] = [device.name,device.power,device.weight_sum,device.num_points,i]
-            temp_df = device.analytics.copy()
+            temp_df = device.get_as_dataframe()
             temp_df['Device_ID'] = i
             temp_df['Minute'] = temp_df.index
             # Add the analytics to the dataframe
@@ -89,8 +89,7 @@ class DataLoader():
             new_device.num_points = device_row['Num_Points']
             new_device.weight_sum = device_row['Weight_Sum']
             # Add the analytics
-            new_device.analytics = pd.DataFrame(np.zeros((1440,3)),columns=["On_time","Off_time","Operating_time"])
-            new_device.analytics = new_device.analytics.add(analytics.set_index('Minute').drop(columns=['Device_ID']),fill_value=0)
+            new_device.analytics = analytics[['On_time','Off_time','Operating_time']].to_numpy().T
             # Add the device to the list
             devices.append(new_device)
         return devices
