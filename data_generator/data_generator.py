@@ -15,7 +15,7 @@ def generate_data(**kwargs):
     random_on_off_times["OFF"] = devices.apply(lambda row: np.random.normal(row['Usual_Off_time'], row['Off_variance']), axis=1).round().astype(int)
     # Calulate the power at each minute
     power_over_time = np.zeros(1440)
-    p_forget = 0.2
+    p_forget = 0.3
     for i,(power,on_time,off_time) in random_on_off_times.iterrows():
         # Ignore the device a certain percentage of the time
         if random.random() < p_forget:

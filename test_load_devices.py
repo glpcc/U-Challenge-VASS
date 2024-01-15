@@ -39,7 +39,12 @@ kb.trim_devices(0.5)
 kb.name_devices_from_csv(pd.read_csv("data_generator/data/devices.csv"))
 kb.plot_device_analytics([1000,1500])
 
+# Create the recomendation engine
+re = RecomendationEngine()
+# Get the electricity price data
+electricity_price = data_load.get_electricity_price()
+# Recommend the cheaper on times
 list_devices = kb.get_list_devices()
-
-data_load.save_devices_data(list_devices,"data/")
-dev2 = data_load.load_devices_data("data/")
+re.recommend_cheaper_on_times(list_devices,electricity_price)
+# Recommend to reduce the usage time of the most used and consuming devices
+re.recommend_sorter_usage_time(list_devices)

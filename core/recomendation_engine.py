@@ -15,7 +15,7 @@ class RecomendationEngine():
         mean_on_times = {device: self.calculate_weighted_mean(device,0) for device in devices}
         std_on_times = {device: self.calculate_weighted_std(device,0) for device in devices}
 
-
+        cost_reduction_per_device = []
         for device in devices:
             if std_on_times[device] < std_considerated_not_regular_use:
                 continue
@@ -36,9 +36,13 @@ class RecomendationEngine():
             min_index = convolution.argmin()
             most_efficcient_minute = int(min_index)
             cost_reduction = convolution[round(mean_on_times[device])] - convolution[most_efficcient_minute]
+            cost_reduction_per_device.append((device,cost_reduction))
+        num_recommendations = min(3,len(cost_reduction_per_device))
+        cost_reduction_per_device.sort(key=lambda x: x[1],reverse=True)
+        for device,cost_reduction in cost_reduction_per_device[:num_recommendations]:
             # Print the recomendation
             print(f"Se podrian ahorrar {cost_reduction:.2f}€ si el dispositivo llamado {device.name} que consume {device.power}W se usara a las {round(most_efficcient_minute/60)}:{round(most_efficcient_minute%60)}h \
-                   \n en vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h\n" 
+                    \nen vez de a las {round(mean_on_times[device]/60)}:{round(mean_on_times[device]%60)}h lo que equivale a {cost_reduction*365:.2f}€ al año\n" 
             )
             
 
@@ -46,15 +50,18 @@ class RecomendationEngine():
 
 
     def recommend_sorter_usage_time(self,devices: list[Device]):
+        kg_C02_per_kWh = 0.273 
         # 0 index is the on time, 1 index is the off time, 2 index is the operating time
         # Sort devices by the time they are used
         mean_usage_times = list(map(lambda x: (x,self.calculate_weighted_mean(x,2)),devices))
         mean_usage_times.sort(key=lambda x: x[0].power*x[1],reverse=True)
         # Recommend to reduce the use time of the most used and consuming devices
-        max_num_devices = min(5,len(mean_usage_times))
+        max_num_devices = min(3,len(mean_usage_times))
         for device,mean_usage_time in mean_usage_times[:max_num_devices]:
             print(f"El dispositivo llamado {device.name} consume {device.power}W y se usa en promedio {round(mean_usage_time/60,2)} horas al día")
-            print(f"este dispositivo es uno de los que más consume y se usa, se recomienda reducir su uso si es posible\n")
+            print(f"este dispositivo es uno de los que más consume y se usa, se recomienda reducir su uso si es posible")
+            if mean_usage_time > 60:
+                print(f"Si se reduce el uso de este dispositivo en 1 hora al día se ahorrarían {((device.power*((mean_usage_time/60 )- 1))/1000)*kg_C02_per_kWh*365:.2f}kg de CO2 al año\n")
         return devices
     
     def calculate_weighted_std(self,device: Device,field)-> float:

@@ -108,7 +108,8 @@ class KnowledgeBase():
                 continue
 
             for device in self.devices[power]:
-                device.get_as_dataframe().plot(title=f'{device.name} {device.power}W',style='.')
+                analytics = device.get_as_dataframe()
+                analytics.plot(title=f'{device.name} {device.power}W',style='.')
                 plt.show()
 
 
