@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from core.device import Device
-
+from core.utils import calculate_weighted_mean,calculate_weighted_std
 
 class RecomendationEngine():
     def __init__(self) -> None:
@@ -10,10 +10,10 @@ class RecomendationEngine():
 
     def recommend_cheaper_on_times(self,devices: list[Device],electricity_price: pd.DataFrame,std_considerated_not_regular_use: float = 4,min_std_usage_time_consider_regular: float = 220,out_of_boundaries_usage_time: tuple[int,int] = (0,1441)):
         # 0 index is the on time, 1 index is the off time, 2 index is the operating time
-        mean_usage_times = {device: self.calculate_weighted_mean(device,2) for device in devices}
-        std_usage_times = {device: self.calculate_weighted_std(device,2) for device in devices}
-        mean_on_times = {device: self.calculate_weighted_mean(device,0) for device in devices}
-        std_on_times = {device: self.calculate_weighted_std(device,0) for device in devices}
+        mean_usage_times = {device: calculate_weighted_mean(device,2) for device in devices}
+        std_usage_times = {device: calculate_weighted_std(device,2) for device in devices}
+        mean_on_times = {device: calculate_weighted_mean(device,0) for device in devices}
+        std_on_times = {device: calculate_weighted_std(device,0) for device in devices}
 
         cost_reduction_per_device = []
         for device in devices:
@@ -53,7 +53,7 @@ class RecomendationEngine():
         kg_C02_per_kWh = 0.273 
         # 0 index is the on time, 1 index is the off time, 2 index is the operating time
         # Sort devices by the time they are used
-        mean_usage_times = list(map(lambda x: (x,self.calculate_weighted_mean(x,2)),devices))
+        mean_usage_times = list(map(lambda x: (x,calculate_weighted_mean(x,2)),devices))
         mean_usage_times.sort(key=lambda x: x[0].power*x[1],reverse=True)
         # Recommend to reduce the use time of the most used and consuming devices
         max_num_devices = min(3,len(mean_usage_times))
@@ -61,19 +61,8 @@ class RecomendationEngine():
             print(f"El dispositivo llamado {device.name} consume {device.power}W y se usa en promedio {round(mean_usage_time/60,2)} horas al día")
             print(f"este dispositivo es uno de los que más consume y se usa, se recomienda reducir su uso si es posible")
             if mean_usage_time > 60:
-                print(f"Si se reduce el uso de este dispositivo en 1 hora al día se ahorrarían {((device.power*((mean_usage_time/60 )- 1))/1000)*kg_C02_per_kWh*365:.2f}kg de CO2 al año\n")
+                print(f"Si se reduce el uso de este dispositivo en 1 hora al día se ahorrarían {(device.power/1000)*kg_C02_per_kWh*365:.2f}kg de CO2 al año\n")
         return devices
     
-    def calculate_weighted_std(self,device: Device,field)-> float:
-        val = np.arange(len(device.analytics[field]))
-        wt = device.analytics[field]
-        mean = np.average(val, weights=wt)
-        variance = np.average((val - mean)**2, weights=wt)
-        return np.sqrt(variance)
-    
-    def calculate_weighted_mean(self,device: Device,field)-> float:
-        val = np.arange(len(device.analytics[field]))
-        wt = device.analytics[field]
-        return np.average(val, weights=wt) # type: ignore
 
     

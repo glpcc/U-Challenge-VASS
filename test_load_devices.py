@@ -6,6 +6,7 @@ from core.device import Device
 from core.knowledge_base import KnowledgeBase
 from core.recomendation_engine import RecomendationEngine
 from matplotlib import pyplot as plt
+import random
 
 # Generate the classes instances
 data_load = DataLoader()
@@ -15,7 +16,9 @@ kb = KnowledgeBase()
 # list_devices = data_load.load_devices_data("data/")
 # kb.set_devices_by_list(list_devices)
 # kb.plot_device_analytics()
-
+# Seed the random generator and numpy random generator
+random.seed(0)
+np.random.seed(0)
 
 days = 200
 #Create a plot with the power data of the 20 first days
