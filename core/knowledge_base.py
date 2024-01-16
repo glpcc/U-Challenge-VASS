@@ -109,7 +109,26 @@ class KnowledgeBase():
 
             for device in self.devices[power]:
                 analytics = device.get_as_dataframe()
-                analytics.plot(title=f'{device.name} {device.power}W',style='.')
+                on_time_analytics = device.on_time_analytics
+                off_time_analytics = device.off_time_analytics
+                operating_time_analytics = device.operating_time_analytics
+                # Create 1d gaussian kernel
+                size = 100
+                std = 30
+                x = np.linspace(-size / 2, size / 2, size)
+                gaussian = np.exp(-(x / std) ** 2)
+                # apply gaussian convolution to the analytics
+                on_time_analytics = np.convolve(on_time_analytics, gaussian, mode='same')
+                off_time_analytics = np.convolve(off_time_analytics, gaussian, mode='same')
+                operating_time_analytics = np.convolve(operating_time_analytics, gaussian, mode='same')
+                # Plot area 
+                plt.fill_between(analytics.index,0,on_time_analytics,alpha=0.8)
+                plt.fill_between(analytics.index,0,off_time_analytics,alpha=0.8)
+                plt.fill_between(analytics.index,0,operating_time_analytics,alpha=0.8)
+                # Add the legend
+                plt.legend(["On time","Off time","Operating time"])
+                # Add the title
+                plt.title(f"{device.name} {device.power}W")
                 plt.show()
 
 
