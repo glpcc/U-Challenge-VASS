@@ -140,7 +140,7 @@ class KnowledgeBase():
                 if self.devices[power][i].num_points < minimum_points:
                     del self.devices[power][i]
 
-    def name_devices_from_csv(self,devices_names: pd.DataFrame):
+    def name_devices_from_stats(self,devices_names: pd.DataFrame):
         '''Function to name the devices from a dataframe with the power usage and usual on and off time of the devices '''
         for power,group in devices_names.groupby("Power"):
             if power not in self.devices:
