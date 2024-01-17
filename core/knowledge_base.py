@@ -43,7 +43,7 @@ class KnowledgeBase():
 
                 for j,device in enumerate(self.devices[power]):
                     w = weights[j]
-                    w -= 0.3 if max_w > w else 0
+                    w -= 0.5 if max_w > w else -0.2
                     w = max(w,0)
                     device.add_point(w,on_time,off_time)
 

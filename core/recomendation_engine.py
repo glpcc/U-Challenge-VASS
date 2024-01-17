@@ -50,7 +50,7 @@ class RecomendationEngine():
 
 
     def recommend_sorter_usage_time(self,devices: list[Device]):
-        kg_C02_per_kWh = 0.273 
+        kg_C02_per_kWh = 0.273 # Average in spain in 2022
         # 0 index is the on time, 1 index is the off time, 2 index is the operating time
         # Sort devices by the time they are used
         mean_usage_times = list(map(lambda x: (x,calculate_weighted_mean(x,2)),devices))

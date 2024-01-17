@@ -10,6 +10,7 @@ class DataProcessor():
 
 
     def process_data(self,df: pd.DataFrame):
+        '''Function that takes a dataframe with the power data and returns a dataframe with the posible events and their on and off times'''
         diffs = pd.DataFrame()
         diffs['Power_Diff'] = df['Power'].diff()
         diffs['Minute'] = df['Minute']
