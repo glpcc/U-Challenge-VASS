@@ -130,7 +130,7 @@ class KnowledgeBase():
                 # Add the title
                 plt.title(f"{device.name} {device.power}W")
                 # Add the labels
-                plt.xlabel("Tiempo (Minutes)")
+                plt.xlabel("Tiempo (Minutos)")
                 plt.ylabel("Peso")
                 plt.show()
 
