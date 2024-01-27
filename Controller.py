@@ -31,6 +31,9 @@ for d in range(days):
     #Plot the data
     if d < 20:
         axs[d//5,d%5].plot(data['Power'])
+        axs[d//5,d%5].set_title("Dia "+str(d))
+        axs[d//5,d%5].set_xlabel("Tiempo (Minutes)")
+        axs[d//5,d%5].set_ylabel("Potencia (Watts)")
         data_days.append(data)
     # Proccess the data
     posibles_device_intervals,min_num_devices = data_processor.process_data(data)

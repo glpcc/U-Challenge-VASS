@@ -129,6 +129,9 @@ class KnowledgeBase():
                 plt.legend(["On time","Off time","Operating time"])
                 # Add the title
                 plt.title(f"{device.name} {device.power}W")
+                # Add the labels
+                plt.xlabel("Tiempo (Minutes)")
+                plt.ylabel("Peso")
                 plt.show()
 
 
