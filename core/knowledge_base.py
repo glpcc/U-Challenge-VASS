@@ -147,8 +147,7 @@ class KnowledgeBase():
         '''Function to name the devices from a dataframe with the power usage and usual on and off time of the devices '''
         for power,group in devices_names.groupby("Power"):
             if power not in self.devices:
-                # TODO add the device to the class dict and add the mean as a point
-                continue
+                raise Exception(f"No devices with power {power}W")
 
             time_index = np.arange(0,1440)
             on_time_means = np.empty(len(self.devices[power]))

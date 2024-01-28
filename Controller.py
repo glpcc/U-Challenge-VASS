@@ -40,7 +40,7 @@ for d in range(days):
 
     # Save the data to the knowledge base
     kb.save_events(posibles_device_intervals,min_num_devices)
-
+plt.show()
 kb.trim_devices(0.5)
 kb.name_devices_from_stats(pd.read_csv("data_generator/data/devices.csv"))
 kb.plot_device_analytics([1000,1500])
